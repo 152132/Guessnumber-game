@@ -1,0 +1,370 @@
+iacrt, [2025/8/19 22:33]
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜数字游戏 - 集气运为一身的天才版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 2px dashed #ddd;
+        }
+
+        .range-display {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .attempts {
+            font-size: 1.1em;
+            color: #666;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        #guessInput {
+            font-size: 1.5em;
+            padding: 15px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            width: 200px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        #guessInput:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message.hint {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .history {
+            background: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .history-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .history-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+iacrt, [2025/8/19 22:33]
+.stat-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            .title {
+                font-size: 2em;
+            }
+            #guessInput {
+                width: 100%;
+                max-width: 200px;
+            }
+            .btn {
+                padding: 12px 20px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">🎯 猜数字游戏</h1>
+        
+        <div class="game-info">
+            <div class="range-display" id="rangeDisplay">请猜一个 0-100 的数字</div>
+            <div class="attempts">第 <span id="attemptCount">0</span> 次猜测</div>
+        </div>
+
+        <div class="input-section">
+            <input type="number" id="guessInput" placeholder="输入数字" min="0" max="100">
+            <br><br>
+            <button class="btn" onclick="makeGuess()">🚀 猜！</button>
+            <button class="btn" onclick="newGame()">🎮 新游戏</button>
+        </div>
+
+        <div class="message" id="messageArea">开始你的表演吧！</div>
+
+        <div class="history" id="historyArea" style="display: none;">
+            <div class="history-title">猜测历史</div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-number" id="totalGames">0</div>
+                <div class="stat-label">总游戏数</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="avgGuesses">0</div>
+                <div class="stat-label">平均猜测次数</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        let targetNumber = 0;
+        let minRange = 0;
+        let maxRange = 100;
+        let attempts = 0;
+        let guessHistory = [];
+        let totalGames = 0;
+        let totalGuesses = 0;
+
+        // 初始化游戏
+        function newGame() {
+            targetNumber = Math.floor(Math.random() * 101);
+            minRange = 0;
+            maxRange = 100;
+            attempts = 0;
+            guessHistory = [];
+            
+            updateDisplay();
+            showMessage("开始新游戏！猜一个 0-100 的数字", "hint");
+            document.getElementById("historyArea").style.display = "none";
+            document.getElementById("guessInput").value = "";
+            document.getElementById("guessInput").focus();
+        }
+
+        // 猜测逻辑
+        function makeGuess() {
+            const input = document.getElementById("guessInput");
+            const guess = parseInt(input.value);
+
+            // 输入验证
+            if (isNaN(guess)) {
+                showMessage("请输入一个有效的数字！", "error");
+                return;
+            }
+
+            if (guess < minRange || guess > maxRange) {
+                showMessage(数字不在范围内，请输入 ${minRange}-${maxRange} 的数字, "error");
+                return;
+            }
+
+            attempts++;
+            guessHistory.push(guess);
+            updateDisplay();
+
+            if (guess < targetNumber) {
+                minRange = guess + 1;
+                showMessage(太小了！请输入 ${minRange}-${maxRange} 的数字, "hint");
+            } else if (guess > targetNumber) {
+                maxRange = guess - 1;
+                showMessage(太大了！请输入 ${minRange}-${maxRange} 的数字, "hint");
+            } else {
+                // 猜对了！
+                gameWon();
+            }
+
+            input.value = "";
+            input.focus();
+        }
+
+        // 游戏胜利
+        function gameWon() {
+            totalGames++;
+            totalGuesses += attempts;
+
+iacrt, [2025/8/19 22:33]
+let message = 🎉 恭喜猜对了！答案是 ${targetNumber}，用了 ${attempts} 次！<br>;
+            
+            // 你的经典评价系统 😂
+            if (attempts <= 1) {
+                message += "欧你可真是个集气运为一身的天才！";
+            } else if (attempts <= 6) {
+                message += "你的猜测策略很不错！用了比较少的次数";
+            } else {
+                message += "要么你是倒霉蛋，要么你没有使用二分查找 qwq";
+            }
+
+            showMessage(message, "success");
+            showHistory();
+            updateStats();
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            document.getElementById("rangeDisplay").textContent = 
+                请猜一个 ${minRange}-${maxRange} 的数字;
+            document.getElementById("attemptCount").textContent = attempts;
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const messageArea = document.getElementById("messageArea");
+            messageArea.innerHTML = message;
+            messageArea.className = message ${type};
+        }
+
+        // 显示历史
+        function showHistory() {
+            const historyArea = document.getElementById("historyArea");
+            const historyList = document.getElementById("historyList");
+            
+            historyList.innerHTML = "";
+            guessHistory.forEach((guess, index) => {
+                const item = document.createElement("div");
+                item.className = "history-item";
+                item.textContent = ${index + 1}: ${guess};
+                historyList.appendChild(item);
+            });
+            
+            historyArea.style.display = "block";
+        }
+
+        // 更新统计
+        function updateStats() {
+            document.getElementById("totalGames").textContent = totalGames;
+            const avgGuesses = totalGames > 0 ? (totalGuesses / totalGames).toFixed(1) : 0;
+            document.getElementById("avgGuesses").textContent = avgGuesses;
+        }
+
+        // 回车键支持
+        document.getElementById("guessInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                makeGuess();
+            }
+        });
+
+        // 初始化游戏
+        newGame();
+    </script>
+</body>
+</html>
